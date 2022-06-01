@@ -1,0 +1,12 @@
+filename,class,bbox
+img000001.png,proba_2,"[121, 258, 783, 1024]"
+img010001.png,cheops,"[57, 456, 702, 1024]"
+img020001.png,debris,"[535, 437, 694, 589]"
+img030001.png,double_star,"[321, 415, 1005, 739]"
+img040001.png,earth_observation_sat_1,"[266, 203, 713, 376]"
+img050002.png,lisa_pathfinder,"[387, 0, 762, 340]"
+img060001.png,proba_3_csc,"[274, 102, 927, 685]"
+img070002.png,proba_3_ocs,"[158, 44, 766, 687]"
+img080007.png,smart_1,"[0, 0, 796, 1024]"
+img090001.png,soho,"[14, 0, 494, 752]"
+img100001.png,xmm_newton,"[431, 206, 1024, 910]"
