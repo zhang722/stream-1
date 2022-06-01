@@ -19,19 +19,19 @@ The `stream-1/visualize_data.ipynb` notebook contains basic functions to load an
 
 The correspondences between class names and indexes are given below.
 
-| Class                     | Name                    | Index    |
-|---------------------------|-------------------------|----------|
-| Proba 2                   | proba_2                 | 0        |
-| Cheops                    | cheops                  | 1        |
-| Debris                    | debris                  | 2        |
-| Double star               | double_star             | 3        |
-| Earth Observation Sat 1   | earth_observation_sat_1 | 4        |
-| Lisa Pathfinder           | lisa_pathfinder         | 5        |
-| Proba 3 CSC               | proba_3_csc             | 6        |
-| Proba 3 OCS               | proba_3_ocs             | 7        |
-| Smart 1                   | smart_1                 | 8        |
-| Soho                      | soho                    | 9        |
-| Xmm Newton                | xmm_newton              | 10       |
+| Class                     | Name                      | Index    |
+|---------------------------|---------------------------|----------|
+| Proba 2                   | `proba_2`                 | 0        |
+| Cheops                    | `cheops`                  | 1        |
+| Debris                    | `debris`                  | 2        |
+| Double star               | `double_star`             | 3        |
+| Earth Observation Sat 1   | `earth_observation_sat_1` | 4        |
+| Lisa Pathfinder           | `lisa_pathfinder`         | 5        |
+| Proba 3 CSC               | `proba_3_csc`             | 6        |
+| Proba 3 OCS               | `proba_3_ocs`             | 7        |
+| Smart 1                   | `smart_1`                 | 8        |
+| Soho                      | `soho`                    | 9        |
+| Xmm Newton                | `xmm_newton`              | 10       |
 
 The `bbox` cells must follow the format: `[R_min,C_min,R_max,C_max]`, where `R` refers to *row*, and `C` refers to *column*.
 
