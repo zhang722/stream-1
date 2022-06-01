@@ -50,19 +50,19 @@ Participants interested only in Task 1 can fill only the `class` column. Partici
 
 The `class` column must be filled with class indexes:
 
-| Class      | Index    |
-|------------|----------|
-| AcrimSat   | 0        |
-| Aquarius   | 1        |
-| Aura       | 2        |
-| Calipso    | 3        |
-| Cloudsat   | 4        |
-| CubeSat    | 5        |
-| Debris     | 6        |
-| Jason      | 7        |
-| Sentinel-6 | 8        |
-| Terra      | 9        |
-| TRMM       | 10       |
+| Class                     | Index    |
+|---------------------------|----------|
+| Proba 2                   | 0        |
+| Cheops                    | 1        |
+| Debris                    | 2        |
+| Double star               | 3        |
+| Earth Observation Sat 1   | 4        |
+| Lisa Pathfinder           | 5        |
+| Proba 3 CSC               | 6        |
+| Proba 3 OCS               | 7        |
+| Smart 1                   | 8        |
+| Soho                      | 9        |
+| Xmm Newton                | 10       |
 
 The `bbox` cells must follow the format: `[R_min,C_min,R_max,C_max]`, where `R` refers to *row*, and `C` refers to *column*.
 
