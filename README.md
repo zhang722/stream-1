@@ -58,6 +58,6 @@ Please first create a `Data/` folder in `stream-2/`, then download the training 
             ├───val.csv
 </pre>
 
-The `stream-2/visualize_data_spark.ipynb` notebook contains basic functions to load and display dataset samples.
+The `stream-2/visualize_data_spark.py` script contains basic functions to load and display dataset samples.
 
-For this stream, both position and orientation accuracies will be evaluated. The metric is largely inspired by the [SPEED+ Challenge](https://kelvins.esa.int/pose-estimation-2021/) one. More precisely, we are going to sum the relative position error and the geodesic orientation error for each frame, then average these scores over all the frames and trajectories.
+For this stream, both position and orientation accuracies will be evaluated. The metric is largely inspired by the [SPEED+ Challenge](https://kelvins.esa.int/pose-estimation-2021/). More precisely, we are going to sum the relative position error and the geodesic orientation error for each frame, then average these scores over all the frames and trajectories.
