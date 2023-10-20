@@ -1,139 +1,79 @@
-from ast import literal_eval
-import os
-import matplotlib.pyplot as plt
-from skimage import io , img_as_uint 
-import pandas as pd
-import matplotlib.patches as mpatches
-
-
-def process_labels(labels_dir,split):
-    path = os.path.join(labels_dir, f"{split}.csv")
-    labels = pd.read_csv(path)
-    return  labels
-
-
-
-class SPARKDataset:
-
-    """ Class for dataset inspection: easily accessing single images, and corresponding ground truth pose data. """
-
-    def __init__(self, class_map, root_dir='./data',split='train'):
-        self.root_dir = os.path.join(root_dir, split)
-        self.labels = process_labels(root_dir,split)
-        self.class_map =  class_map
-
-    def get_image(self, i=0):
-
-        """ Loading image as PIL image. """
-
-        sat_name = self.labels.iloc[i]['class']
-        img_name = self.labels.iloc[i]['filename']
-        image_name = f'{self.root_dir}/{img_name}'
-
-        image = io.imread(image_name)
-
-        return image , self.class_map[sat_name]
-
-    def get_bbox(self, i=0):
-
-        """ Getting bounding box for image. """
-
-        bbox = self.labels.iloc[i]['bbox']
-        bbox    = literal_eval(bbox)
+import albumentations as A
+import cv2
+import numpy as np
+from albumentations.pytorch import ToTensorV2
+from config import DEVICE
+# this class keeps track of the training and validation loss values...
+# ... and helps to get the average for each epoch as well
+class Averager:
+    def __init__(self):
+        self.current_total = 0.0
+        self.iterations = 0.0
         
-        min_x, min_y, max_x, max_y = bbox
-
-        return min_x, min_y, max_x, max_y 
-
-
-
-    def visualize(self,i, size=(15,15),  ax=None):
-
-        """ Visualizing image, with ground truth pose with axes projected to training image. """
-
-        if ax is None:
-            ax = plt.gca()
-            
-        image, img_class = self.get_image(i)
-        min_x, min_y, max_x, max_y   = self.get_bbox(i)
-
-        ax.imshow(image,vmin=0, vmax=255)
-
-
-        rect = mpatches.Rectangle((min_y, min_x), max_y - min_y, max_x - min_x,
-                                        fill=False, edgecolor='red', linewidth=2)
-        ax.add_patch(rect)
-        
-        label = f"{list(self.class_map.keys())[list(self.class_map.values()).index(img_class)]}"
-        
-        ax.text(min_y, min_x-20, label,color='white',fontsize=15)
-        ax.set_axis_off()
-
-        return 
-
+    def send(self, value):
+        self.current_total += value
+        self.iterations += 1
     
-try:
-    import torch
-    from torch.utils.data import Dataset
-    from torchvision import transforms
-    has_pytorch = True
-    print('Found Pytorch')
-except ImportError:
-    has_pytorch = False
-
+    @property
+    def value(self):
+        if self.iterations == 0:
+            return 0
+        else:
+            return 1.0 * self.current_total / self.iterations
     
-if has_pytorch:
-    class PyTorchSparkDataset(Dataset):
+    def reset(self):
+        self.current_total = 0.0
+        self.iterations = 0.0
 
-        """ SPARK dataset that can be used with DataLoader for PyTorch training. """
-
-        def __init__(self, class_map, split='train', root_dir='', transform=None,detection = True):
-
-            if not has_pytorch:
-                raise ImportError('Pytorch was not imported successfully!')
-
-            if split not in {'train', 'validation', 'test'}:
-                raise ValueError('Invalid split, has to be either \'train\', \'validation\' or \'test\'')
+def collate_fn(batch):
+    """
+    To handle the data loading as different images may have different number 
+    of objects and to handle varying size tensors as well.
+    """
+    return tuple(zip(*batch))
 
 
-            self.class_map =  class_map
-            
-            self.detection = detection
-            self.split = split 
-            self.root_dir = os.path.join(root_dir, self.split)
-            
-            self.labels = process_labels(root_dir,split)
-                
-            self.transform = transform
+# define the training tranforms
+def get_train_transform():
+    return A.Compose([
+        A.Flip(0.5),
+        A.RandomRotate90(0.5),
+        A.MotionBlur(p=0.2),
+        A.MedianBlur(blur_limit=3, p=0.1),
+        A.Blur(blur_limit=3, p=0.1),
+        ToTensorV2(p=1.0),
+    ], bbox_params={
+        'format': 'pascal_voc',
+        'label_fields': ['labels']
+    })
+# define the validation transforms
+def get_valid_transform():
+    return A.Compose([
+        ToTensorV2(p=1.0),
+    ], bbox_params={
+        'format': 'pascal_voc', 
+        'label_fields': ['labels']
+    })
 
-        def __len__(self):
-            return len(self.labels)
-
-        def __getitem__(self, idx):
-            
-            sat_name = self.labels.iloc[idx]['class']
-            img_name = self.labels.iloc[idx]['filename']
-            image_name = f'{self.root_dir}/{img_name}'
-            
-            image = io.imread(image_name)
-
-
-            if self.transform is not None:
-                torch_image = self.transform(image)
-            
-            else:
-                torch_image = torch.from_numpy(image).permute(2,1,0)
-                
-            if self.detection:
-                
-                bbox = self.labels.iloc[idx]['bbox']
-                bbox = literal_eval(bbox)
-
-                return torch_image, self.class_map[sat_name] , torch.tensor(bbox)
-
-            return torch_image, torch.tensor(self.class_map[sat_name])
-else:
-    class PyTorchSparkDataset:
-        def __init__(self, *args, **kwargs):
-            raise ImportError('Pytorch is not available!')
-            
+def show_tranformed_image(train_loader):
+    """
+    This function shows the transformed images from the `train_loader`.
+    Helps to check whether the tranformed images along with the corresponding
+    labels are correct or not.
+    Only runs if `VISUALIZE_TRANSFORMED_IMAGES = True` in config.py.
+    """
+    if len(train_loader) > 0:
+        for i in range(1):
+            images, targets = next(iter(train_loader))
+            images = list(image.to(DEVICE) for image in images)
+            targets = [{k: v.to(DEVICE) for k, v in t.items()} for t in targets]
+            boxes = targets[i]['boxes'].cpu().numpy().astype(np.int32)
+            sample = images[i].permute(1, 2, 0).cpu().numpy()
+            for box in boxes:
+                cv2.rectangle(sample,
+                            (box[0], box[1]),
+                            (box[2], box[3]),
+                            (0, 0, 255), 2)
+            cv2.imshow('Transformed image', sample)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
